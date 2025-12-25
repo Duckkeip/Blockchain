@@ -7,3 +7,22 @@ ETH sent: 0
 Transaction hash: 0xf9f092f27638e4982a8da04f1cc5cd0370e7ad6db866a320f7ce88cf4814e3c4
 Gas used: 379573
 ========================
+
+========================
+Date: 12/25/2025, 1:36:03 PM
+Deployer: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+Contract deployed at: 0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6
+ETH sent: 0
+Transaction hash: 0x34e133177b41df82df6daf40d0fe42087fa180b710596813c9346cba77a0a140
+Gas used: 379573
+========================
+
+  Case 1: Single transaction verification
+========================
+Date: 12/25/2025, 2:48:59 PM
+Deployer: 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+Contract deployed at: 0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e
+ETH sent: 0
+Transaction hash: 0x6a07b6518fc81e862e5dd1f7402597abf2be7c2a25a85b0ab19a37f6542d54e0
+Gas used: 379573
+========================

@@ -2,9 +2,9 @@ import { ethers } from "hardhat";
 import fs from "fs";
 
 async function main() {
-  // 1️⃣ Lấy deployer
-  const [deployer] = await ethers.getSigners();
-
+  // 1️⃣ Lấy deployer 
+  const signers = await ethers.getSigners();
+  const deployer = signers[1]; // chọn account #1
   // 2️⃣ Deploy contract
   const Factory = await ethers.getContractFactory("SignatureVerifier");
   const contract = await Factory.deploy();
@@ -14,6 +14,7 @@ async function main() {
 
   // 3️⃣ Log thông tin ra file
   const logData = `
+  Case 1: Single transaction verification
 ========================
 Date: ${new Date().toLocaleString()}
 Deployer: ${deployer.address}
