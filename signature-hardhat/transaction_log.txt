@@ -1,0 +1,9 @@
+
+========================
+Date: 12/25/2025, 1:31:55 PM
+Deployer: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+Contract deployed at: 0xa513E6E4b8f2a923D98304ec87F64353C4D5C853
+ETH sent: 0
+Transaction hash: 0xf9f092f27638e4982a8da04f1cc5cd0370e7ad6db866a320f7ce88cf4814e3c4
+Gas used: 379573
+========================
