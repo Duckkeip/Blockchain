@@ -1,28 +1,13 @@
-import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
-import { defineConfig, configVariable } from "hardhat/config";
-import "@nomicfoundation/hardhat-ethers";
+import "@nomiclabs/hardhat-ethers";
+import { HardhatUserConfig } from "hardhat/config";
 
-export default defineConfig({
-  plugins: [hardhatToolboxViemPlugin],
-  solidity: {
-    version: "0.8.28",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
-      },
-    },
-  },
+const config: HardhatUserConfig = {
+  solidity: "0.8.20",
   networks: {
-    hardhat: {
-      type: "edr-simulated",
-      chainType: "l1",
-    },
-    sepolia: {
-      type: "http",
-      chainType: "l1",
-      url: configVariable("SEPOLIA_RPC_URL"),
-      accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
+    localhost: {
+      url: "http://127.0.0.1:8545",
     },
   },
-});
+};
+
+export default config;
