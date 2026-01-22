@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cổng Sinh Viên - Blockchain Grade</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .verified-tick { color: #0dcaf0; font-weight: bold; }
+        .hash-text { font-family: monospace; font-size: 0.8em; color: #6c757d; }
+    </style>
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+    <h2 class="text-primary text-center">TRA CỨU KẾT QUẢ HỌC TẬP</h2>
+    <div class="card mt-4 shadow-sm">
+        <div class="card-body">
+            <div class="input-group mb-3">
+                <input type="text" id="studentId" class="form-control" placeholder="Nhập mã số sinh viên (Vd: SV001)">
+                <button class="btn btn-primary" onclick="searchGrade()">Kiểm tra</button>
+            </div>
+            <table class="table table-hover mt-3">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Môn học</th>
+                        <th>Điểm số</th>
+                        <th>Trạng thái</th>
+                        <th>Xác thực Blockchain</th>
+                    </tr>
+                </thead>
+                <tbody id="gradeResult">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * Hàm tra cứu điểm từ cơ sở dữ liệu tập trung
+ */
+async function searchGrade() {
+    const id = document.getElementById('studentId').value;
+    if (!id) {
+        alert("Vui lòng nhập mã sinh viên!");
+        return;
+    }
+
+    try {
+        // Gọi API tra cứu điểm của sinh viên từ SQLite chung
+        const response = await fetch(`/api/grades/${id}`);
+        if (!response.ok) throw new Error("Không tìm thấy dữ liệu sinh viên.");
+
+        const grades = await response.json();
+        const tableBody = document.getElementById('gradeResult');
+        let html = '';
+
+        if (grades.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="4" class="text-center">Không có dữ liệu cho mã sinh viên này.</td></tr>';
+            return;
+        }
+
+        grades.forEach(g => {
+            // Xác định màu sắc badge dựa trên trạng thái trong DB tập trung
+            const isApproved = g.status === 'APPROVED';
+            const statusBadge = isApproved ? 'bg-success' : 'bg-warning';
+
+            // Logic hiển thị xác thực On-chain
+            const blockchainBadge = isApproved ?
+                '<span class="badge bg-info text-dark">Verified On-chain ✓</span>' :
+                '<span class="badge bg-secondary">Pending Verification...</span>';
+
+            html += `<tr>
+                <td>${g.subject}</td>
+                <td><strong>${g.score}</strong></td>
+                <td><span class="badge ${statusBadge}">${g.status}</span></td>
+                <td>
+                    ${blockchainBadge}
+                    ${g.hash ? `<br><span class="hash-text">TXID: ${g.hash.substring(0, 20)}...</span>` : ''}
+                </td>
+            </tr>`;
+        });
+        tableBody.innerHTML = html;
+    } catch (error) {
+        console.error("Lỗi tra cứu:", error);
+        alert(error.message);
+    }
+}
+</script>
+</body>
+</html>

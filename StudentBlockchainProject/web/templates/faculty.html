@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phê Duyệt Blockchain (PoA Node)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Tinh chỉnh giao diện theo hình ảnh */
+        body {
+            background-color: #1a1d20;
+            color: white;
+        }
+        .card {
+            background-color: #343a40;
+            border: none;
+        }
+        .card-header {
+            background-color: #495057;
+            color: #ced4da;
+            font-size: 0.9rem;
+            padding: 10px 15px;
+        }
+        .table-dark {
+            --bs-table-bg: #212529;
+        }
+        .badge-validator {
+            background-color: #dc3545; /* Màu đỏ nút Validator Mode */
+            font-size: 0.75rem;
+            padding: 8px 12px;
+        }
+        .btn-mine {
+            background-color: #ffc107; /* Màu vàng nút Đóng khối */
+            color: black;
+            font-weight: 500;
+        }
+        .text-info-verified {
+            color: #0dcaf0 !important; /* Màu xanh Verified Signature */
+        }
+        .id-hash {
+            color: #adb5bd;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-normal">PHÊ DUYỆT ĐIỂM SINH VIÊN (PoA Node)</h2>
+        <span class="badge badge-validator text-uppercase">Validator Mode</span>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header">
+            Danh sách điểm chờ xác thực (Mempool)
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-dark table-hover mb-0">
+                <thead>
+                    <tr class="border-bottom border-secondary">
+                        <th class="ps-3">ID Giao dịch (Hash)</th>
+                        <th>Chi tiết</th>
+                        <th>Chữ ký GV</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="pendingList">
+                    </tbody>
+            </table>
+            <div class="p-3 text-end bg-dark bg-opacity-25">
+                <button class="btn btn-mine px-4" onclick="mineAll()">Đóng khối (Mine New Block)</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.onload = loadPending;
+
+    /**
+     * Tải danh sách điểm PENDING từ database tập trung
+     */
+    async function loadPending() {
+        try {
+            // Gọi API lấy danh sách chờ từ SQLite chung
+            const response = await fetch('/api/grades/pending');
+            const data = await response.json();
+            const tbody = document.getElementById('pendingList');
+
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Không có giao dịch nào đang chờ...</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(g => `
+                <tr class="align-middle">
+                    <td class="ps-3 id-hash">
+                        <small>${g.hash}</small>
+                    </td>
+                    <td>${g.student_id} - ${g.subject}: <strong>${g.score}</strong></td>
+                    <td><span class="text-info-verified">Verified Signature ✓</span></td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-primary me-1" onclick="approveSingle('${g.hash}')">Duyệt vào Block</button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu pending:", error);
+        }
+    }
+
+    /**
+     * Duyệt một hoặc nhiều điểm vào Block On-chain
+     * Logic này gọi API /api/blockchain/approve trong main.py
+     */
+    async function approveSingle(txId) {
+        if (!confirm("Xác nhận đưa giao dịch này vào Block On-chain?")) return;
+        await sendApproval([txId]);
+    }
+
+    async function mineAll() {
+        // Lấy tất cả ID đang hiển thị trong bảng
+        const rows = document.querySelectorAll('#pendingList tr td.id-hash small');
+        const ids = Array.from(rows).map(el => el.innerText).filter(id => id.length > 10);
+
+        if (ids.length === 0) {
+            alert("Không có giao dịch nào để đóng khối!");
+            return;
+        }
+
+        if (confirm(`Xác nhận đóng khối cho ${ids.length} giao dịch?`)) {
+            await sendApproval(ids);
+        }
+    }
+
+    /**
+     * Hàm dùng chung để gửi yêu cầu Approve tới Server
+     */
+    async function sendApproval(idList) {
+        try {
+            // Gọi API đã cập nhật trong main.py
+            const response = await fetch('/api/blockchain/approve', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ ids: idList })
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                alert(`Thành công! Đã tạo Block #${result.block_index} và phát tán tới các Node.`);
+                loadPending(); // Tải lại danh sách từ SQLite
+            } else {
+                const err = await response.json();
+                alert("Lỗi: " + (err.error || "Không thể phê duyệt"));
+            }
+        } catch (error) {
+            alert("Lỗi kết nối: " + error.message);
+        }
+    }
+
+    // Tự động cập nhật danh sách mỗi 5 giây
+    setInterval(loadPending, 5000);
+</script>
+</body>
+</html>
